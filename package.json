@@ -1,0 +1,24 @@
+{
+  "name": "app-fitness",
+  "version": "1.0.0",
+  "description": "Um projeto onde possibilita a montagem e controle de treino",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/app.js",
+    "lint": "npx eslint ."
+  },
+  "author": "Lucas",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.3.0",
+    "nodemon": "^3.1.11",
+    "prettier": "^3.8.1"
+  }
+}
