@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Um projeto onde possibilita a montagem e controle de treino",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "nodemon src/app.js",
     "lint": "npx eslint .",
@@ -17,7 +18,8 @@
   "author": "Lucas",
   "license": "MIT",
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
