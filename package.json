@@ -5,9 +5,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/app.js",
+    "dev": "nodemon  --legacy-watch src/app.js",
     "lint": "npx eslint .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "migrations:create": "node-pg-migrate -m src/infra/migrations create",
+    "migration:up": "node-pg-migrate -m src/infra/migrations --envPath .env up"
   },
   "lint-staged": {
     "*.js": [
@@ -19,6 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "express": "^5.2.1",
+    "node-pg-migrate": "^6.2.2",
     "pg": "^8.11.3"
   },
   "devDependencies": {
