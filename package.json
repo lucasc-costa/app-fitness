@@ -20,6 +20,7 @@
   "author": "Lucas",
   "license": "MIT",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "express": "^5.2.1",
     "node-pg-migrate": "^6.2.2",
     "pg": "^8.11.3"

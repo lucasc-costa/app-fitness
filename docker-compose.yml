@@ -22,6 +22,10 @@ services:
       - database
     env_file:
       - ./.env
+    volumes:
+      - .:/app
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
 volumes:
   pgdata:
