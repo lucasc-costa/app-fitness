@@ -1,6 +1,7 @@
 import express from "express";
 import userRoutes from "./routes/userRoutes.js";
 import migrationsRoutes from "./routes/migrationsRoutes.js";
+import workoutRoutes from "./routes/workoutRoutes.js";
 import database from "./infra/database.js";
 
 const app = express();
@@ -11,6 +12,7 @@ app.get("/", function (req, res) {
 app.use(express.json());
 app.use("/users", userRoutes);
 app.use("/migrations", migrationsRoutes);
+app.use("/workout", workoutRoutes);
 
 app.listen(process.env.PORT || 3000, async function () {
   console.log("Servidor iniciado!");

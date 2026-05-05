@@ -4,7 +4,6 @@ import bcrypt from "bcrypt";
 async function createUser(userInputValues) {
   await validateUniqueUsername(userInputValues.username);
   await validateUniqueEmail(userInputValues.email);
-  await validatePassword(userInputValues.password);
 
   const hashedPassword = await bcrypt.hash(userInputValues.password, 10);
 
@@ -36,11 +35,26 @@ async function createUser(userInputValues) {
   }
 }
 
-async function validateUniqueUsername(username) {
-  if (typeof username === "undefined" || username.trim().length === 0) {
-    throw new Error("O username não foi informado.");
+async function findOneByUsername(username) {
+  const results = await database.query({
+    text: `
+      SELECT
+        id, username, email, password
+      FROM
+        users
+      WHERE
+        LOWER(username) = LOWER($1)
+      ;`,
+    values: [username],
+  });
+
+  if (results.rowCount === 0) {
+    throw new Error("O usuario informado é invalido.");
   }
 
+  return results.rows[0];
+}
+async function validateUniqueUsername(username) {
   const results = await database.query({
     text: `
       SELECT
@@ -58,10 +72,6 @@ async function validateUniqueUsername(username) {
   }
 }
 async function validateUniqueEmail(email) {
-  if (typeof email === "undefined" || email.trim().length === 0) {
-    throw new Error("O email não foi informado.");
-  }
-
   const results = await database.query({
     text: `
       SELECT
@@ -78,14 +88,10 @@ async function validateUniqueEmail(email) {
     throw new Error("O email informado já está sendo utilizado.");
   }
 }
-async function validatePassword(password) {
-  if (typeof password === "undefined" || password.trim().length === 0) {
-    throw new Error("O senha não foi informada.");
-  }
-}
 
-const user = {
+const userModel = {
   createUser,
+  findOneByUsername,
 };
 
-export default user;
+export default userModel;
