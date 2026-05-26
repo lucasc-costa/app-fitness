@@ -4,7 +4,9 @@ import exercises from "../controllers/exercisesController.js";
 
 const router = Router();
 
-router.post("/", authentication.canRequest, exercises.createExercises);
-router.get("/", authentication.canRequest, exercises.findAllExercices);
+router.post("/", authentication.canRequest, exercises.createExercise);
+router.get("/", authentication.canRequest, exercises.findAllExercises);
+router.patch("/", authentication.canRequest, exercises.updateExercise);
+router.delete("/", authentication.canRequest, exercises.deleteExercise);
 
 export default router;
