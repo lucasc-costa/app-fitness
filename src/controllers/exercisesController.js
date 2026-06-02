@@ -21,14 +21,21 @@ async function createExercise(req, res) {
 
 async function findAllExercises(req, res) {
   try {
-    await validateObject(req.query);
-    await validateId(req.query.id);
+    const allowedFilters = ["name", "muscle_group"];
+    await validateAllowedFilters(req.query, allowedFilters);
+    console.log();
+
+    if (Object.keys(req.query).includes("name")) {
+      await validateName(req.query.name);
+    }
+    if (Object.keys(req.query).includes("muscle_group")) {
+      await validateMuscleGroup(req.query.muscle_group);
+    }
 
     const filters = {
       user_id: req.user.id,
       muscle_group: req.query.muscle_group,
       name: req.query.name,
-      id: req.query.id,
     };
 
     const exercisesFound = await exercisesModel.findAll(filters);
@@ -38,14 +45,37 @@ async function findAllExercises(req, res) {
     return res.status(400).json(error.message);
   }
 }
+async function findExerciseById(req, res) {
+  try {
+    await validateId(req.params.id);
+
+    const filters = {
+      user_id: req.user.id,
+      id: req.params.id,
+    };
+
+    const exerciseFound = await exercisesModel.findOneById(filters);
+    return res.status(200).json(exerciseFound);
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json(error.message);
+  }
+}
 
 async function updateExercise(req, res) {
   try {
-    await validateObject(req.body);
+    const allowedFilters = ["name", "muscle_group"];
+    await validateAllowedFilters(req.body, allowedFilters);
+    if (Object.keys(req.body).includes("name")) {
+      await validateName(req.body.name);
+    }
+    if (Object.keys(req.body).includes("muscle_group")) {
+      await validateMuscleGroup(req.body.muscle_group);
+    }
 
-    await validateId(req.body.id);
+    await validateId(req.params.id);
 
-    const filters = req.body;
+    const filters = { ...req.body, ...req.params };
 
     filters["user_id"] = req.user.id;
 
@@ -58,11 +88,9 @@ async function updateExercise(req, res) {
 }
 async function deleteExercise(req, res) {
   try {
-    await validateId(req.body.id);
+    await validateId(req.params.id);
 
-    const filters = {};
-
-    filters["id"] = req.body.id;
+    const filters = { ...req.params };
     filters["user_id"] = req.user.id;
 
     const deleteExercise = await exercisesModel.deleteExercise(filters);
@@ -94,15 +122,21 @@ async function validateId(id) {
   }
 }
 
-async function validateObject(input) {
+async function validateAllowedFilters(input, allowedFilters) {
   if (Object.keys(input).length === 0) {
     throw new Error("Não foi informado nenhum parâmetro.");
+  }
+  for (let key in input) {
+    if (!allowedFilters.includes(key)) {
+      throw new Error(`Pârametro ${key} não é valido.`);
+    }
   }
 }
 
 const exercises = {
   createExercise,
   findAllExercises,
+  findExerciseById,
   updateExercise,
   deleteExercise,
 };

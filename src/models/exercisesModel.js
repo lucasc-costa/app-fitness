@@ -27,9 +27,6 @@ async function create(exercisesInputValues) {
 
 async function findAll(filters) {
   const exercisesFound = await runSelectQuery(filters);
-  if (exercisesFound.length === 0) {
-    throw new Error("Exercicio não encontrado.");
-  }
   return exercisesFound;
 
   async function runSelectQuery(filters) {
@@ -51,17 +48,12 @@ async function findAll(filters) {
     if (filters.muscle_group) {
       numberVarible += 1;
       values.push(filters.muscle_group);
-      query = query + `AND LOWER(muscle_group) LIKE LOWER($${numberVarible})`;
+      query = query + ` AND LOWER(muscle_group) = LOWER($${numberVarible})`;
     }
     if (filters.name) {
       numberVarible += 1;
       values.push(`%${filters.name}%`);
       query = query + ` AND LOWER(name) LIKE LOWER($${numberVarible})`;
-    }
-    if (filters.id) {
-      numberVarible += 1;
-      values.push(`${filters.id}`);
-      query = query + ` AND id = ($${numberVarible})`;
     }
 
     const result = await database.query({
@@ -72,24 +64,49 @@ async function findAll(filters) {
     return result.rows;
   }
 }
+async function findOneById(filters) {
+  const exerciseFound = await runSelectQuery(filters);
+  if (!exerciseFound) {
+    throw new Error("Exercicio não encontrado.");
+  }
+  return exerciseFound;
+
+  async function runSelectQuery(filters) {
+    const result = await database.query({
+      text: `
+            SELECT
+                id, name, muscle_group, created_by_user_id
+            FROM
+              exercises
+            WHERE
+            (
+            created_by_user_id = ($1)
+              OR
+            created_by_user_id IS NULL
+            )
+            AND
+              id = ($2)
+        ;`,
+      values: [filters.user_id, filters.id],
+    });
+
+    return result.rows[0];
+  }
+}
 
 async function update(exerciseInputValues) {
-  await validateId(exerciseInputValues.id);
-
   const filters = {
     id: exerciseInputValues.id,
     user_id: exerciseInputValues.user_id,
   };
-  const currentExercise = await findAll(filters);
+  const currentExercise = await findOneById(filters);
 
-  if (
-    !(currentExercise[0].created_by_user_id === exerciseInputValues.user_id)
-  ) {
+  if (!(currentExercise.created_by_user_id === exerciseInputValues.user_id)) {
     throw new Error("Exercicio não pode ser alterado.");
   }
 
   const exerciseWithNewValues = {
-    ...currentExercise[0],
+    ...currentExercise,
     ...exerciseInputValues,
   };
 
@@ -124,12 +141,9 @@ async function update(exerciseInputValues) {
 }
 
 async function deleteExercise(exerciseInputValues) {
-  await validateId(exerciseInputValues.id);
-  const currentExercise = await findAll(exerciseInputValues);
+  const currentExercise = await findOneById(exerciseInputValues);
 
-  if (
-    !(currentExercise[0].created_by_user_id === exerciseInputValues.user_id)
-  ) {
+  if (!(currentExercise.created_by_user_id === exerciseInputValues.user_id)) {
     throw new Error("Exercicio não pode ser excluido.");
   }
 
@@ -155,29 +169,10 @@ async function deleteExercise(exerciseInputValues) {
   }
 }
 
-async function validateId(id) {
-  const results = await database.query({
-    text: `
-      SELECT
-        id
-      FROM
-        exercises
-      WHERE
-        id = ($1)
-      LIMIT
-        1
-      ;`,
-    values: [id],
-  });
-
-  if (results.rowCount === 0) {
-    throw new Error("O Id informado não existe.");
-  }
-}
-
 const exercises = {
   create,
   findAll,
+  findOneById,
   update,
   deleteExercise,
 };
