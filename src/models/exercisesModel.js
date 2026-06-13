@@ -1,4 +1,5 @@
 import database from "../infra/database.js";
+import { ForbiddenError, NotFoundError } from "../infra/error.js";
 
 async function create(exercisesInputValues) {
   const newExercise = await runInsertQuery(exercisesInputValues);
@@ -67,7 +68,10 @@ async function findAll(filters) {
 async function findOneById(filters) {
   const exerciseFound = await runSelectQuery(filters);
   if (!exerciseFound) {
-    throw new Error("Exercicio não encontrado.");
+    throw new NotFoundError({
+      message: "O exercicio informado não foi encontrado",
+      action: "Verifique se o Id esta digitado corretamente.",
+    });
   }
   return exerciseFound;
 
@@ -102,7 +106,10 @@ async function update(exerciseInputValues) {
   const currentExercise = await findOneById(filters);
 
   if (!(currentExercise.created_by_user_id === exerciseInputValues.user_id)) {
-    throw new Error("Exercicio não pode ser alterado.");
+    throw new ForbiddenError({
+      message: "O exercicio informado não pode ser alterado.",
+      action: "Tente outro exercicio.",
+    });
   }
 
   const exerciseWithNewValues = {
@@ -144,7 +151,10 @@ async function deleteExercise(exerciseInputValues) {
   const currentExercise = await findOneById(exerciseInputValues);
 
   if (!(currentExercise.created_by_user_id === exerciseInputValues.user_id)) {
-    throw new Error("Exercicio não pode ser excluido.");
+    throw new ForbiddenError({
+      message: "O exercicio informado não pode ser excluido.",
+      action: "Tente outro exercicio.",
+    });
   }
 
   const deleteExercise = await runDeleteQuery(exerciseInputValues);

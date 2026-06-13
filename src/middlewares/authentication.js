@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { UnauthorizedError } from "../infra/error.js";
 
 function canRequest(req, res, next) {
   const sendToken = req.headers.authorization?.split(" ")[1];
@@ -6,13 +7,21 @@ function canRequest(req, res, next) {
   jwt.verify(sendToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       if (err.name === "TokenExpiredError") {
-        return res.status(401).json({
-          message: "Token expirado",
+        const UnauthorizedErrorObject = new UnauthorizedError({
+          message: "O Token informado está expirado.",
+          action: "Realize novamente o Login.",
         });
+        return res
+          .status(UnauthorizedErrorObject.statusCode)
+          .json(UnauthorizedErrorObject);
       } else {
-        return res.status(401).json({
-          message: "Token inválido",
+        const UnauthorizedErrorObject = new UnauthorizedError({
+          message: "Token informado invalido.",
+          action: "Realize novamente o Login.",
         });
+        return res
+          .status(UnauthorizedErrorObject.statusCode)
+          .json(UnauthorizedErrorObject);
       }
     } else {
       req.user = decoded;

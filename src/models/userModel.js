@@ -1,5 +1,6 @@
 import database from "../infra/database.js";
 import bcrypt from "bcrypt";
+import { NotFoundError, ValidationError } from "../infra/error.js";
 
 async function createUser(userInputValues) {
   await validateUniqueUsername(userInputValues.username);
@@ -49,7 +50,10 @@ async function findOneByUsername(username) {
   });
 
   if (results.rowCount === 0) {
-    throw new Error("O usuario informado é invalido.");
+    throw new NotFoundError({
+      message: "O username informado não foi encontrado no sistema.",
+      action: "Verifique se o username está digitado corretamente.",
+    });
   }
 
   return results.rows[0];
@@ -68,7 +72,10 @@ async function validateUniqueUsername(username) {
   });
 
   if (results.rowCount > 0) {
-    throw new Error("O username informado já está sendo utilizado.");
+    throw new ValidationError({
+      message: "O username informado já está sendo utilizado.",
+      action: "Utilize outro username para realizar esta operação.",
+    });
   }
 }
 async function validateUniqueEmail(email) {
@@ -85,7 +92,10 @@ async function validateUniqueEmail(email) {
   });
 
   if (results.rowCount > 0) {
-    throw new Error("O email informado já está sendo utilizado.");
+    throw new ValidationError({
+      message: "O email informado já está sendo utilizado.",
+      action: "Utilize outro email para realizar esta operação.",
+    });
   }
 }
 
