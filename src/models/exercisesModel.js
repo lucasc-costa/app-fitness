@@ -1,0 +1,190 @@
+import database from "../infra/database.js";
+import { ForbiddenError, NotFoundError } from "../infra/error.js";
+
+async function create(exercisesInputValues) {
+  const newExercise = await runInsertQuery(exercisesInputValues);
+  return newExercise;
+
+  async function runInsertQuery(exercisesInputValues) {
+    const result = await database.query({
+      text: `
+            INSERT INTO
+                exercises(name, muscle_group, created_by_user_id)
+            VALUES
+                ($1,$2,$3)
+            RETURNING
+                id, name, muscle_group, created_by_user_id
+        ;`,
+      values: [
+        exercisesInputValues.name,
+        exercisesInputValues.muscle_group,
+        exercisesInputValues.user_id,
+      ],
+    });
+
+    return result.rows[0];
+  }
+}
+
+async function findAll(filters) {
+  const exercisesFound = await runSelectQuery(filters);
+  return exercisesFound;
+
+  async function runSelectQuery(filters) {
+    let query = `
+            SELECT
+                id, name, muscle_group, created_by_user_id
+            FROM
+              exercises
+            WHERE
+            (
+            created_by_user_id = ($1)
+              OR
+            created_by_user_id IS NULL
+            )
+        `;
+    let numberVarible = 1;
+    let values = [filters.user_id];
+
+    if (filters.muscle_group) {
+      numberVarible += 1;
+      values.push(filters.muscle_group);
+      query = query + ` AND LOWER(muscle_group) = LOWER($${numberVarible})`;
+    }
+    if (filters.name) {
+      numberVarible += 1;
+      values.push(`%${filters.name}%`);
+      query = query + ` AND LOWER(name) LIKE LOWER($${numberVarible})`;
+    }
+
+    const result = await database.query({
+      text: query,
+      values: values,
+    });
+
+    return result.rows;
+  }
+}
+async function findOneById(filters) {
+  const exerciseFound = await runSelectQuery(filters);
+  if (!exerciseFound) {
+    throw new NotFoundError({
+      message: "O exercicio informado não foi encontrado",
+      action: "Verifique se o Id esta digitado corretamente.",
+    });
+  }
+  return exerciseFound;
+
+  async function runSelectQuery(filters) {
+    const result = await database.query({
+      text: `
+            SELECT
+                id, name, muscle_group, created_by_user_id
+            FROM
+              exercises
+            WHERE
+            (
+            created_by_user_id = ($1)
+              OR
+            created_by_user_id IS NULL
+            )
+            AND
+              id = ($2)
+        ;`,
+      values: [filters.user_id, filters.id],
+    });
+
+    return result.rows[0];
+  }
+}
+
+async function update(exerciseInputValues) {
+  const filters = {
+    id: exerciseInputValues.id,
+    user_id: exerciseInputValues.user_id,
+  };
+  const currentExercise = await findOneById(filters);
+
+  if (!(currentExercise.created_by_user_id === exerciseInputValues.user_id)) {
+    throw new ForbiddenError({
+      message: "O exercicio informado não pode ser alterado.",
+      action: "Tente outro exercicio.",
+    });
+  }
+
+  const exerciseWithNewValues = {
+    ...currentExercise,
+    ...exerciseInputValues,
+  };
+
+  const updateExercise = await runUpdateQuery(exerciseWithNewValues);
+  return updateExercise;
+
+  async function runUpdateQuery(exercisesInputValues) {
+    const result = await database.query({
+      text: `
+            UPDATE
+                exercises
+            SET
+              name = ($2),
+              muscle_group = ($3)
+            WHERE
+                id = ($1)
+            AND
+                created_by_user_id = ($4)
+            RETURNING
+                id, name, muscle_group, created_by_user_id
+        ;`,
+      values: [
+        exerciseInputValues.id,
+        exercisesInputValues.name,
+        exercisesInputValues.muscle_group,
+        exercisesInputValues.user_id,
+      ],
+    });
+
+    return result.rows[0];
+  }
+}
+
+async function deleteExercise(exerciseInputValues) {
+  const currentExercise = await findOneById(exerciseInputValues);
+
+  if (!(currentExercise.created_by_user_id === exerciseInputValues.user_id)) {
+    throw new ForbiddenError({
+      message: "O exercicio informado não pode ser excluido.",
+      action: "Tente outro exercicio.",
+    });
+  }
+
+  const deleteExercise = await runDeleteQuery(exerciseInputValues);
+  return deleteExercise;
+
+  async function runDeleteQuery(exercisesInputValues) {
+    const result = await database.query({
+      text: `
+            DELETE FROM
+                exercises
+            WHERE
+                id = ($1)
+            AND
+                created_by_user_id = ($2)
+            RETURNING
+                id, name, muscle_group, created_by_user_id
+        ;`,
+      values: [exerciseInputValues.id, exercisesInputValues.user_id],
+    });
+
+    return result.rows[0];
+  }
+}
+
+const exercises = {
+  create,
+  findAll,
+  findOneById,
+  update,
+  deleteExercise,
+};
+
+export default exercises;

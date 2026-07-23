@@ -3,6 +3,8 @@ import userRoutes from "./routes/userRoutes.js";
 import migrationsRoutes from "./routes/migrationsRoutes.js";
 import workoutRoutes from "./routes/workoutRoutes.js";
 import database from "./infra/database.js";
+import exercisesRoutes from "./routes/exercisesRoutes.js";
+import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
 
@@ -13,7 +15,9 @@ app.use(express.json());
 app.use("/users", userRoutes);
 app.use("/migrations", migrationsRoutes);
 app.use("/workout", workoutRoutes);
+app.use("/exercises", exercisesRoutes);
 
+app.use(errorHandler.onErrorHandler);
 app.listen(process.env.PORT || 3000, async function () {
   console.log("Servidor iniciado!");
   const result = await database.query("SELECT 1+2 as sum;");
