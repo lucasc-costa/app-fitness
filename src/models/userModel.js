@@ -58,6 +58,7 @@ async function findOneByUsername(username) {
 
   return results.rows[0];
 }
+
 async function validateUniqueUsername(username) {
   const results = await database.query({
     text: `
