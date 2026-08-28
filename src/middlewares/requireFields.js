@@ -8,7 +8,9 @@ function requireFields(location, fields) {
       throw new Error(`Invalid location: ${location}`);
     }
 
-    const missingFields = fields.filter((field) => !(field in req[location]));
+    const missingFields = fields.filter(
+      (field) => !(field in (req[location] ?? {}))
+    );
 
     if (missingFields.length > 0) {
       throw new ValidationError({
