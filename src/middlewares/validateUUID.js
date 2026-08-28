@@ -2,21 +2,22 @@ import { ValidationError } from "../infra/error.js";
 import { validate } from "uuid";
 
 async function validateId(req, res, next) {
-  const id = req.params.id;
+  const ids = req.params;
 
-  if (!id || id.trim().length === 0) {
-    throw new ValidationError({
-      message: "O Id não foi informado.",
-      action: "Informe o ID.",
-    });
+  for (const [key, value] of Object.entries(ids)) {
+    if (!value || value.trim().length === 0) {
+      throw new ValidationError({
+        message: `O ${key} não foi informado.`,
+        action: "Informe o ID.",
+      });
+    }
+    if (!validate(value)) {
+      throw new ValidationError({
+        message: `O ${key} informado esta incorreto.`,
+        action: "Informe um Id valido.",
+      });
+    }
   }
-  if (!validate(id)) {
-    throw new ValidationError({
-      message: "O Id informado esta incorreto.",
-      action: "Informe um Id valido.",
-    });
-  }
-
   next();
 }
 

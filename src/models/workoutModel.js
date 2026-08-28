@@ -49,12 +49,19 @@ async function findAllByUserId(userId) {
   }
 }
 
-async function findById(id) {
+async function findById(id, user_id) {
   const workoutFound = await runSelectQuery(id);
+
   if (!workoutFound) {
     throw new NotFoundError({
       message: "O treino informado não foi encontrado",
       action: "Verifique se o Id esta digitado corretamente.",
+    });
+  }
+  if (workoutFound.user_id !== user_id) {
+    throw new ForbiddenError({
+      message: "O treino informado pertence a outro usuário.",
+      action: "Tente outro treino.",
     });
   }
   return workoutFound;

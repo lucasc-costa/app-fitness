@@ -1,4 +1,4 @@
-import { ForbiddenError, ValidationError } from "../infra/error.js";
+import { ValidationError } from "../infra/error.js";
 import workoutModel from "../models/workoutModel.js";
 
 const EXPIRATION_IN_MILLISECONDS = 60 * 60 * 24 * 1 * 1000; // 1 days
@@ -32,14 +32,7 @@ async function findAllWorkouts(req, res) {
 async function findWorkoutById(req, res) {
   const user_id = req.user.id;
   const id = req.params.id;
-  const workoutFound = await workoutModel.findById(id);
-
-  if (workoutFound.user_id !== user_id) {
-    throw new ForbiddenError({
-      message: "O treino informado pertence a outro usuário.",
-      action: "Tente outro treino.",
-    });
-  }
+  const workoutFound = await workoutModel.findById(id, user_id);
 
   return res.status(200).json({ data: workoutFound });
 }

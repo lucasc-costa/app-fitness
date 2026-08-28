@@ -21,7 +21,7 @@ function validateEmptyFields(location, fields) {
 
     if (emptyFields.length > 0) {
       throw new ValidationError({
-        message: `Campos não informados: ${emptyFields.join(", ")}`,
+        message: `Campos informados vazios: ${emptyFields.join(", ")}`,
         action: "Ajuste os dados enviados e tente novamente",
       });
     }
