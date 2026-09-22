@@ -1,4 +1,6 @@
 import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 import userRoutes from "./routes/userRoutes.js";
 import migrationsRoutes from "./routes/migrationsRoutes.js";
 import workoutRoutes from "./routes/workoutRoutes.js";
@@ -9,6 +11,12 @@ import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
 
+var corsOptions = {
+  origin: "http://localhost:5173",
+  credentials: true,
+};
+app.use(cors(corsOptions));
+app.use(cookieParser());
 app.get("/", function (req, res) {
   res.send("Olá mundo!");
 });

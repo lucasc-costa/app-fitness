@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon  --legacy-watch src/app.js",
+    "dev": "nodemon --env-file=.env --legacy-watch src/app.js",
     "lint": "npx eslint .",
     "prepare": "husky",
     "migrations:create": "node-pg-migrate -m src/infra/migrations create",
@@ -21,6 +21,8 @@
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "node-pg-migrate": "^6.2.2",
