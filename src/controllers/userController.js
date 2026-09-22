@@ -12,6 +12,7 @@ async function createUser(req, res) {
 }
 
 async function loginUser(req, res) {
+  const EXPIRATION_IN_MILLISECONDS = 60 * 60 * 24 * 1 * 1000;
   try {
     const { username, password } = req.body;
     const foundUser = await findUserByUsername(username);
@@ -20,10 +21,17 @@ async function loginUser(req, res) {
 
     const token = await createToken(foundUser.id, foundUser.username);
 
-    return res.status(200).json({
-      message: "Login realizado com sucesso!",
-      token: token,
-    });
+    return res
+      .status(200)
+      .cookie("token", token, {
+        path: "/",
+        maxAge: EXPIRATION_IN_MILLISECONDS,
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+      })
+      .json({
+        message: "Login realizado com sucesso!",
+      });
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       throw new UnauthorizedError({

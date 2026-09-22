@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { UnauthorizedError } from "../infra/error.js";
 
 function canRequest(req, res, next) {
-  const sendToken = req.headers.authorization?.split(" ")[1];
+  const sendToken = req.cookies.token;
 
   jwt.verify(sendToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
